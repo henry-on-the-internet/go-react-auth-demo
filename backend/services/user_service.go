@@ -2,50 +2,50 @@ package services
 
 import (
 	"henry-on-the-internet/go-react-auth-demo/backend/domain/users"
-	"henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
-	"os/user"
+
+	restErrors "github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateUser(user users.User) (*user.User, *errors.RestErr) {
-	err := user.Validate()
-	if err != nil {
-		return nil, err
+func CreateUser(user users.User) (*users.User, *restErrors.RestErr) {
+	restErr := user.Validate()
+	if restErr != nil {
+		return nil, restErr
 	}
 
 	// encrpyt the password
 	pwSlice, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
-		return nil, errors.NewBadRequestError("failed to encrypt the password")
+		return nil, restErrors.NewBadRequestError("failed to encrypt the password")
 	}
 
 	user.Password = string(pwSlice[:])
-	user.Save()
+	restErr = user.Save()
 
 	if err != nil {
-		return nil, err
+		return nil, restErrors.NewInternalServerError("failed to save user")
 	}
 	return &user, nil
 }
 
-func GetUser(user users.User) (*users.User, *errors.RestErr) {
+func GetUser(user users.User) (*users.User, *restErrors.RestErr) {
 	result := &users.User{Email: user.Email}
-	err := result.GetByEmail()
-	if err != nil {
-		return nil, err
+	restErr := result.GetByEmail()
+	if restErr != nil {
+		return nil, restErr
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
 	if err != nil {
-		return nil, errors.NewBadRequestError("failed to decrypt")
+		return nil, restErrors.NewBadRequestError("failed to decrypt")
 	}
 
 	resultWp := &users.User{ID: result.ID, FirstName: result.FirstName, LastName: result.LastName, Email: result.Email}
 	return resultWp, nil
 }
 
-func GetUserById(userId int64) (*users.User, *errors.RestErr) {
+func GetUserById(userId int64) (*users.User, *restErrors.RestErr) {
 	result := &users.User{ID: userId}
 	err := result.GetByID()
 	if err != nil {

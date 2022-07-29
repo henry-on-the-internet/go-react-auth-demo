@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/henry-on-the-internet/go-react-auth-demo/backend/services"
-	"github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
+	restErrors "github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -22,10 +22,11 @@ func Register(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		errors.NewBadRequestError("invalid json body")
-		c.JSON(err.Status, err)
+		restErr := restErrors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
 		return
 	}
+
 	result, saveErr := services.CreateUser(user)
 	if saveErr != nil {
 		c.JSON(saveErr.Status, saveErr)
@@ -40,7 +41,7 @@ func Login(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		err := errors.NewBadRequestError("invalid json")
+		err := restErrors.NewBadRequestError("invalid json")
 		c.JSON(err.Status, err)
 		return
 	}
@@ -58,7 +59,7 @@ func Login(c *gin.Context) {
 
 	token, err := claims.SignedString([]byte(SecretKey))
 	if err != nil {
-		err := errors.NewInternalServerError("login failed")
+		err := restErrors.NewInternalServerError("login failed")
 		c.JSON(err.Status, err)
 	}
 
@@ -69,7 +70,7 @@ func Login(c *gin.Context) {
 func Get(c *gin.Context) {
 	cookie, err := c.Cookie("jwt")
 	if err != nil {
-		getErr := errors.NewInternalServerError("could not retrieve cookie")
+		getErr := restErrors.NewInternalServerError("could not retrieve cookie")
 		c.JSON(getErr.Status, getErr)
 		return
 	}
@@ -78,7 +79,7 @@ func Get(c *gin.Context) {
 	})
 
 	if err != nil {
-		restErr := errors.NewInternalServerError("error parsing cookie")
+		restErr := restErrors.NewInternalServerError("error parsing cookie")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
@@ -86,7 +87,7 @@ func Get(c *gin.Context) {
 	claims := token.Claims.(*jwt.StandardClaims)
 	issuer, err := strconv.ParseInt(claims.Issuer, 10, 64)
 	if err != nil {
-		restErr := errors.NewBadRequestError("user id should be a number")
+		restErr := restErrors.NewBadRequestError("user id should be a number")
 		c.JSON(restErr.Status, restErr)
 		return
 	}

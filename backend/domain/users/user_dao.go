@@ -2,7 +2,8 @@ package users
 
 import (
 	"henry-on-the-internet/go-react-auth-demo/backend/datasource/mysql/users_db"
-	"henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
+
+	restErrors "github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
 )
 
 var (
@@ -11,58 +12,54 @@ var (
 	queryGetUserByID    = "SELECT id, first_name, last_name, email FROM users WHERE id=?"
 )
 
-func (user *User) Save() *errors.RestErr {
+func (user *User) Save() *restErrors.RestErr {
 	stmt, err := users_db.Client.Prepare(queryInsertUser)
 	if err != nil {
-		return errors.NewBadRequestError("database error")
+		return restErrors.NewBadRequestError("database error")
 	}
 	defer stmt.Close()
 
 	insertResult, saveErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.Password)
 	if saveErr != nil {
-		return errors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error")
 	}
 
 	userID, err := insertResult.LastInsertId()
 	if err != nil {
-		return errors.NewBadRequestError("failed to encrypt the password")
+		return restErrors.NewInternalServerError("database error")
 	}
 
-	user.Password = string(pwSlice[:])
+	user.ID = userID
 
-	err := user.Save()
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+	return nil
 }
 
-func (user *User) GetByEmail() *errors.RestErr {
+func (user *User) GetByEmail() *restErrors.RestErr {
 	stmt, err := users_db.Client.Prepare(queryGetUserByEmail)
 	if err != nil {
-		return errors.NewInternalServerError("invalid email")
+		return restErrors.NewInternalServerError("invalid email")
 	}
 	defer stmt.Close()
 
 	result := stmt.QueryRow(user.Email)
 	getErr := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password)
 	if getErr != nil {
-		return errors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error")
 	}
 	return nil
 }
 
-func (user *User) GetByID() *errors.RestErr {
+func (user *User) GetByID() *restErrors.RestErr {
 	stmt, err := users_db.Client.Prepare(queryGetUserByID)
 	if err != nil {
-		return errors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error")
 	}
 	defer stmt.Close()
 
 	result := stmt.QueryRow(user.ID)
 	getErr := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
 	if getErr != nil {
-		return errors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error")
 	}
 	return nil
 }
