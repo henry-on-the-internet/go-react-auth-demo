@@ -1,7 +1,7 @@
 package services
 
 import (
-	"henry-on-the-internet/go-react-auth-demo/backend/domain/users"
+	"github.com/henry-on-the-internet/go-react-auth-demo/backend/domain/users"
 
 	restErrors "github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
 

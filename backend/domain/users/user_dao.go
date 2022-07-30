@@ -1,7 +1,7 @@
 package users
 
 import (
-	"henry-on-the-internet/go-react-auth-demo/backend/datasource/mysql/users_db"
+	"github.com/henry-on-the-internet/go-react-auth-demo/backend/datasource/mysql/users_db"
 
 	restErrors "github.com/henry-on-the-internet/go-react-auth-demo/backend/utils/errors"
 )
